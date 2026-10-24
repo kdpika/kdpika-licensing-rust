@@ -283,3 +283,16 @@ published checksum; registry packages and Git commits have their own identities.
 Support: [hi@kdpika.com](mailto:hi@kdpika.com) ·
 [All languages](https://licensing.kdpika.com/docs/v1/sdks/overview) ·
 [API v1](https://licensing.kdpika.com/docs/v1/api)
+
+## SDK repositories and ZIP downloads
+
+| Language | GitHub repository | ZIP from documentation | ZIP from GitHub Releases |
+| --- | --- | --- | --- |
+| Python | [kdpika-licensing-python](https://github.com/kdpika/kdpika-licensing-python) | [Python 1.1.5 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-python-sdk-1.1.5.zip) | [Python 1.1.5 ZIP](https://github.com/kdpika/kdpika-licensing-python/releases/download/v1.1.5/kdpika-python-sdk-1.1.5.zip) |
+| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.1.0 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.0.zip) | [Rust 0.1.0 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.0/kdpika-rust-sdk-0.1.0.zip) |
+| PHP | [kdpika-licensing-php](https://github.com/kdpika/kdpika-licensing-php) | [PHP 1.0.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-php-sdk-1.0.1.zip) | [PHP 1.0.1 ZIP](https://github.com/kdpika/kdpika-licensing-php/releases/download/v1.0.1/kdpika-php-sdk-1.0.1.zip) |
+
+Each versioned GitHub ZIP asset is byte-identical to the matching documentation
+download. GitHub's automatic “Source code (zip)” is a repository snapshot with a
+different folder name and may include newer README/CI metadata; use the named
+SDK asset when following the documentation's extraction paths and checksum.
