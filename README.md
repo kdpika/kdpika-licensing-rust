@@ -1,15 +1,36 @@
-# KDPika Licensing — official Rust SDK
+# KDPika Licensing Rust SDK
 
-Add license activation, verified access and feature limits to native desktop apps,
-CLI tools and trusted Rust web backends. KDPika is language-independent: Rust uses
-the same API v1 and signed license contract as Python, PHP, JavaScript and C#.
+Official Rust client for license activation, signed validation, controlled offline
+access, feature checks and deactivation. **Rust 1.90+**, SDK **0.1.0**, MIT licensed.
 
-Version **0.1.0**, MIT licensed. Rust **1.90+**, edition 2021.
-Official registry package: [kdpika-licensing on crates.io](https://crates.io/crates/kdpika-licensing).
+[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.0/kdpika-rust-sdk-0.1.0.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
 
-Official source: [kdpika/kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust).
-The separate [Python SDK repository](https://github.com/kdpika/kdpika-licensing-python)
-is for Python only; Rust does not depend on it.
+## Install from the source ZIP
+
+Download [kdpika-rust-sdk-0.1.0.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.0.zip)
+or the identical versioned asset from GitHub Releases. Verify its SHA-256 against
+the [download table](https://licensing.kdpika.com/docs/v1/sdks/overview#download-and-verify),
+then extract the `kdpika-rust-sdk` directory beside your application.
+Add it to your application's `Cargo.toml`:
+
+```toml
+[dependencies]
+kdpika-licensing = { path = "../kdpika-rust-sdk" }
+```
+
+From your application directory, build with Cargo:
+
+```sh
+cargo check
+```
+
+Import `kdpika_licensing` in your Rust code. Commit your application's `Cargo.lock`.
+The named SDK ZIP has the checksum and directory layout above; GitHub's automatic
+**Source code (zip)** is a different repository snapshot.
+
+Rust uses the same API v1 contract as the other SDKs, without depending on Python.
+This repository contains only the Rust client, tests and examples, not KDPika's
+proprietary SaaS backend. Edition 2021; Rust 1.90 or later is required.
 
 ## Install from crates.io
 
@@ -48,24 +69,12 @@ Clone this repository next to your application, using the directory name below:
 git clone https://github.com/kdpika/kdpika-licensing-rust.git kdpika-rust-sdk
 ```
 
-Add the path dependency shown below. Before distributing your application, pin a
+Add the path dependency shown above. Before distributing your application, pin a
 reviewed commit and commit the application's Cargo.lock; do not rely on a moving
 branch as a release identifier. This repository contains only the Rust client,
 its tests and examples, not KDPika's proprietary SaaS backend.
 
-## Install from the official source download
-
-Download [kdpika-rust-sdk-0.1.0.zip](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.0.zip)
-from the [Rust guide](https://licensing.kdpika.com/docs/v1/sdks/rust), compare the
-SHA-256 shown there, and extract it next to your application. It contains a single
-`kdpika-rust-sdk` directory. Add it to your application's `Cargo.toml`:
-
-```toml
-[dependencies]
-kdpika-licensing = { path = "../kdpika-rust-sdk" }
-```
-
-Build your application with Cargo; commit its `Cargo.lock`. For the SDK's tests:
+For the SDK's tests, run from the source directory:
 
 ```sh
 cd kdpika-rust-sdk
