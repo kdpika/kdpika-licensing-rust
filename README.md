@@ -14,6 +14,15 @@ is for Python only; Rust does not depend on it.
 
 ## Install from GitHub
 
+To use the verified SDK code directly, add this pinned dependency to Cargo.toml:
+
+```toml
+[dependencies]
+kdpika-licensing = { git = "https://github.com/kdpika/kdpika-licensing-rust", rev = "22d2032ea1ef06434878674b5baddaa93af769d1" }
+```
+
+Or use a local checkout if you prefer:
+
 Clone this repository next to your application, using the directory name below:
 
 ```sh
@@ -240,12 +249,17 @@ and synthetic signing keys in `tests/` are public test data, never production ke
 The explicit ignored backend test requires a separate local PHP/MySQL fixture;
 normal `cargo test` does not contact your platform or consume real license seats.
 
-Rust 1.90 on Apple Silicon macOS is the locally executed native target. Windows
-and Linux CI configuration is included, but is not evidence of a completed remote
-run. Build and verify the target/installer ACLs before shipping to customers.
-No crates.io publication, GitHub source repository or native-vault/UI parity is
-implied by this source release. The platform/backend remains proprietary; this
-client SDK alone is MIT licensed.
+Rust 1.90 checks passed on Windows, Linux and macOS in the
+[verified GitHub Actions run](https://github.com/kdpika/kdpika-licensing-rust/actions/runs/40098311126)
+for commit `22d2032ea1ef06434878674b5baddaa93af769d1`: formatting, Clippy,
+unit/lifecycle/doc tests and Cargo package verification. The local real PHP/MySQL
+acceptance ran on Apple Silicon macOS; CI uses synthetic local fixtures, not your
+production account. This does not certify a packaged GUI, installer ACLs or a
+native credential vault. Verify those on your distribution target.
+The SDK source is public on GitHub, but no crates.io publication or native-vault/UI
+parity is claimed. The platform/backend remains proprietary; this client SDK
+alone is MIT licensed. The website ZIP is an immutable earlier source snapshot
+with its separately published checksum.
 
 Support: [hi@kdpika.com](mailto:hi@kdpika.com) ·
 [All languages](https://licensing.kdpika.com/docs/v1/sdks/overview) ·
