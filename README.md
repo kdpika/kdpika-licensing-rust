@@ -1,13 +1,13 @@
 # KDPika Licensing Rust SDK
 
 Official Rust client for license activation, signed validation, controlled offline
-access, feature checks and deactivation. **Rust 1.90+**, SDK **0.1.0**, MIT licensed.
+access, feature checks and deactivation. **Rust 1.90+**, SDK **0.1.1**, MIT licensed.
 
-[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.0/kdpika-rust-sdk-0.1.0.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
+[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.1/kdpika-rust-sdk-0.1.1.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
 
 ## Install from the source ZIP
 
-Download [kdpika-rust-sdk-0.1.0.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.0.zip)
+Download [kdpika-rust-sdk-0.1.1.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.1.zip)
 or the identical versioned asset from GitHub Releases. Verify its SHA-256 against
 the [download table](https://licensing.kdpika.com/docs/v1/sdks/overview#download-and-verify),
 then extract the `kdpika-rust-sdk` directory beside your application.
@@ -35,21 +35,21 @@ proprietary SaaS backend. Edition 2021; Rust 1.90 or later is required.
 ## Install from crates.io
 
 ```sh
-cargo add kdpika-licensing@0.1.0
+cargo add kdpika-licensing@0.1.1
 ```
 
 Or add it to Cargo.toml:
 
 ```toml
 [dependencies]
-kdpika-licensing = "0.1.0"
+kdpika-licensing = "0.1.1"
 ```
 
 Import it as `kdpika_licensing`. Commit your application's Cargo.lock to retain
 the resolved release/dependency versions. To enable the optional async worker:
 
 ```sh
-cargo add kdpika-licensing@0.1.0 --features async
+cargo add kdpika-licensing@0.1.1 --features async
 ```
 
 ## Install from GitHub
@@ -298,7 +298,7 @@ Support: [hi@kdpika.com](mailto:hi@kdpika.com) ·
 | Language | GitHub repository | ZIP from documentation | ZIP from GitHub Releases |
 | --- | --- | --- | --- |
 | Python | [kdpika-licensing-python](https://github.com/kdpika/kdpika-licensing-python) | [Python 1.1.5 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-python-sdk-1.1.5.zip) | [Python 1.1.5 ZIP](https://github.com/kdpika/kdpika-licensing-python/releases/download/v1.1.5/kdpika-python-sdk-1.1.5.zip) |
-| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.1.0 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.0.zip) | [Rust 0.1.0 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.0/kdpika-rust-sdk-0.1.0.zip) |
+| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.1.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.1.zip) | [Rust 0.1.1 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.1/kdpika-rust-sdk-0.1.1.zip) |
 | PHP | [kdpika-licensing-php](https://github.com/kdpika/kdpika-licensing-php) | [PHP 1.0.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-php-sdk-1.0.1.zip) | [PHP 1.0.1 ZIP](https://github.com/kdpika/kdpika-licensing-php/releases/download/v1.0.1/kdpika-php-sdk-1.0.1.zip) |
 
 Each versioned GitHub ZIP asset is byte-identical to the matching documentation
