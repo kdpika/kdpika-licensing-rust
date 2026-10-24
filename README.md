@@ -4,13 +4,32 @@ Add license activation, verified access and feature limits to native desktop app
 CLI tools and trusted Rust web backends. KDPika is language-independent: Rust uses
 the same API v1 and signed license contract as Python, PHP, JavaScript and C#.
 
-Version **0.1.0**, MIT licensed. Rust **1.90+**, edition 2021. Source distribution;
-**not published on crates.io**. Do not install a similarly named registry package
-unless its publication is confirmed by KDPika.
+Version **0.1.0**, MIT licensed. Rust **1.90+**, edition 2021.
+Official registry package: [kdpika-licensing on crates.io](https://crates.io/crates/kdpika-licensing).
 
 Official source: [kdpika/kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust).
 The separate [Python SDK repository](https://github.com/kdpika/kdpika-licensing-python)
 is for Python only; Rust does not depend on it.
+
+## Install from crates.io
+
+```sh
+cargo add kdpika-licensing@0.1.0
+```
+
+Or add it to Cargo.toml:
+
+```toml
+[dependencies]
+kdpika-licensing = "0.1.0"
+```
+
+Import it as `kdpika_licensing`. Commit your application's Cargo.lock to retain
+the resolved release/dependency versions. To enable the optional async worker:
+
+```sh
+cargo add kdpika-licensing@0.1.0 --features async
+```
 
 ## Install from GitHub
 
@@ -256,10 +275,10 @@ unit/lifecycle/doc tests and Cargo package verification. The local real PHP/MySQ
 acceptance ran on Apple Silicon macOS; CI uses synthetic local fixtures, not your
 production account. This does not certify a packaged GUI, installer ACLs or a
 native credential vault. Verify those on your distribution target.
-The SDK source is public on GitHub, but no crates.io publication or native-vault/UI
-parity is claimed. The platform/backend remains proprietary; this client SDK
-alone is MIT licensed. The website ZIP is an immutable earlier source snapshot
-with its separately published checksum.
+The SDK source is public on GitHub. Native-vault/UI parity is not claimed.
+The platform/backend remains proprietary; this client SDK alone is MIT licensed.
+The website ZIP is an immutable earlier source snapshot with its separately
+published checksum; registry packages and Git commits have their own identities.
 
 Support: [hi@kdpika.com](mailto:hi@kdpika.com) ·
 [All languages](https://licensing.kdpika.com/docs/v1/sdks/overview) ·

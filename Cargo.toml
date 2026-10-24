@@ -5,13 +5,17 @@ edition = "2021"
 rust-version = "1.90"
 description = "Official KDPika Licensing client: signed activation, validation and bounded offline access"
 license = "MIT"
+publish = ["crates-io"]
 readme = "README.md"
 homepage = "https://licensing.kdpika.com"
 repository = "https://github.com/kdpika/kdpika-licensing-rust"
 documentation = "https://licensing.kdpika.com/docs/v1/sdks/rust"
 keywords = ["licensing", "license", "ed25519", "activation", "sdk"]
 categories = ["api-bindings", "authentication"]
-include = ["src/**", "examples/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE", "CHANGELOG.md"]
+include = ["src/**", "examples/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE", "SECURITY.md", "CHANGELOG.md"]
+
+[package.metadata.docs.rs]
+all-features = true
 
 [features]
 default = []

@@ -11,5 +11,5 @@ The MIT license covers this Rust SDK, not the KDPika SaaS backend.
 
 This is the initial 0.1.0 source release. No fixed response-time SLA or historical
 version-support window is promised. Review changes and pin your dependency before
-upgrading. Registry publication is separate; this repository does not claim a
-crates.io release.
+upgrading. Confirm registry releases at
+https://crates.io/crates/kdpika-licensing and check the source repository URL.
