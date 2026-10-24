@@ -27,6 +27,7 @@ pub struct LicenseResult {
     pub(crate) clock: Clock,
     pub(crate) checked_at: DateTime<Utc>,
     pub(crate) monotonic: Instant,
+    pub(crate) session_guard: std::sync::Arc<std::sync::Mutex<Option<String>>>,
 }
 impl fmt::Debug for LicenseResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -124,6 +125,21 @@ impl LicenseResult {
                 .checked_add_signed(elapsed)
                 .unwrap_or(DateTime::<Utc>::MAX_UTC),
         );
+        if !crate::policy::credits(&self.payload)
+            || !crate::policy::lease(
+                &self.payload,
+                self.session_guard
+                    .lock()
+                    .ok()
+                    .as_deref()
+                    .and_then(|v| v.as_deref()),
+                now,
+            )
+            || (self.payload["metered"] == true
+                && (self.source != Source::Online || self.payload["credit_balance"] == 0))
+        {
+            return false;
+        }
         if wall + Duration::seconds(300) < t.server
             || t.expiry.is_some_and(|v| now >= v)
             || t.starts.is_some_and(|v| now < v)

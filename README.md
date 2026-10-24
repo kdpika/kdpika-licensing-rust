@@ -1,5 +1,33 @@
 # KDPika Licensing Rust SDK
 
+## Unreleased source contract — hardware, seats and credits
+
+Requires the matching Phase B–D server. Native Windows/macOS/Linux collect
+product-salted component hashes (never raw serials); activation and validation
+send a required fingerprint and installation identity. Signed strict/fuzzy
+hardware binding is checked for online/cache/offline results. Unavailable native
+hardware fails closed (`HARDWARE_UNAVAILABLE`); VM detection is only a hint.
+`ClientBuilder::fingerprint_provider` is a trusted native adapter/testing hook,
+never an end-user-supplied identity. No browser/WASM fallback is implemented.
+
+Floating licenses automatically checkout and start a stoppable heartbeat at the
+signed interval. `checkout()` returns `Err(Error)` with `ErrorCode::AllSeatsInUse`;
+`heartbeat()`, `checkin()` and `close()` return checked decisions. Signed lease,
+private session-token hash and expiry gate cached/offline/retained feature access.
+Explicit close is recommended; Drop attempts release, but abrupt process exits
+cannot send a request and the bounded server lease must expire.
+
+`consume(1, Some("durable_export_job_123"), None)` returns an immutable-by-ownership
+`CreditConsumption` receipt. Catch `CreditError::InsufficientCredits { balance }`
+or inspect `CreditError::code()`. `get_balance()` always fetches a signed online
+balance. A replay returns the original transaction balance; the fresh balance can
+be zero. A successful last-credit consumption still permits that operation.
+Persist/reuse the same job key after an uncertain outcome: no automatic consume
+retry. Deduplicate the actual job separately. Normal feature checks do not charge
+credits; metered cache/offline checks deny `METERED_ONLINE_REQUIRED`. Async handles
+expose the same operations. Cancelling an await does not undo an in-flight charge.
+Source only: no crate version bump, registry publication or server change.
+
 Official Rust client for license activation, signed validation, controlled offline
 access, feature checks and deactivation. **Rust 1.90+**, SDK **0.1.1**, MIT licensed.
 

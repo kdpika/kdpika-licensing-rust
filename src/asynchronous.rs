@@ -1,5 +1,5 @@
 //! Bounded worker-thread adapter. Blocking HTTP never runs/drops inside a Tokio runtime.
-use crate::{ClientBuilder, Error, ErrorCode, LicenseResult};
+use crate::{ClientBuilder, CreditConsumption, CreditError, Error, ErrorCode, LicenseResult};
 use tokio::sync::{mpsc, oneshot};
 use zeroize::Zeroizing;
 enum Operation {
@@ -8,8 +8,21 @@ enum Operation {
     Validate,
     Online,
     Deactivate,
+    Checkout,
+    Heartbeat,
+    Checkin,
+    Close,
 }
-type Job = (Operation, oneshot::Sender<LicenseResult>);
+enum Job {
+    License(Operation, oneshot::Sender<Result<LicenseResult, Error>>),
+    Balance(oneshot::Sender<Result<u64, CreditError>>),
+    Consume(
+        u64,
+        Option<String>,
+        Option<String>,
+        oneshot::Sender<Result<CreditConsumption, CreditError>>,
+    ),
+}
 /// Cloneable async handle to one serialized licensing worker. Enable feature `async`.
 /// Dropping a future does NOT undo an already-started server operation. Do not blindly retry it.
 #[derive(Clone)]
@@ -33,7 +46,19 @@ impl AsyncLicenseClient {
                 if ready_tx.send(Ok(())).is_err() {
                     return;
                 }
-                while let Some((operation, reply)) = rx.blocking_recv() {
+                while let Some(job) = rx.blocking_recv() {
+                    let (operation, reply) = match job {
+                        Job::Balance(reply) => {
+                            let _ = reply.send(client.get_balance());
+                            continue;
+                        }
+                        Job::Consume(n, key, reason, reply) => {
+                            let _ =
+                                reply.send(client.consume(n, key.as_deref(), reason.as_deref()));
+                            continue;
+                        }
+                        Job::License(op, reply) => (op, reply),
+                    };
                     let result = match operation {
                         Operation::Activate(key, email) => {
                             client.activate(&key, email.as_ref().map(|s| s.as_str()))
@@ -42,8 +67,15 @@ impl AsyncLicenseClient {
                         Operation::Validate => client.validate(),
                         Operation::Online => client.validate_online(),
                         Operation::Deactivate => client.deactivate(),
+                        Operation::Checkout => {
+                            let _ = reply.send(client.checkout());
+                            continue;
+                        }
+                        Operation::Heartbeat => client.heartbeat(),
+                        Operation::Checkin => client.checkin(),
+                        Operation::Close => client.close(),
                     };
-                    let _ = reply.send(result);
+                    let _ = reply.send(Ok(result));
                 }
             })
             .map_err(|_| Error(ErrorCode::Busy))?;
@@ -53,10 +85,10 @@ impl AsyncLicenseClient {
     async fn run(&self, operation: Operation) -> Result<LicenseResult, Error> {
         let (tx, rx) = oneshot::channel();
         self.sender
-            .send((operation, tx))
+            .send(Job::License(operation, tx))
             .await
             .map_err(|_| Error(ErrorCode::Busy))?;
-        rx.await.map_err(|_| Error(ErrorCode::Busy))
+        rx.await.map_err(|_| Error(ErrorCode::Busy))?
     }
     pub async fn activate(
         &self,
@@ -80,5 +112,38 @@ impl AsyncLicenseClient {
     }
     pub async fn deactivate(&self) -> Result<LicenseResult, Error> {
         self.run(Operation::Deactivate).await
+    }
+    pub async fn checkout(&self) -> Result<LicenseResult, Error> {
+        self.run(Operation::Checkout).await
+    }
+    pub async fn heartbeat(&self) -> Result<LicenseResult, Error> {
+        self.run(Operation::Heartbeat).await
+    }
+    pub async fn checkin(&self) -> Result<LicenseResult, Error> {
+        self.run(Operation::Checkin).await
+    }
+    pub async fn close(&self) -> Result<LicenseResult, Error> {
+        self.run(Operation::Close).await
+    }
+    pub async fn get_balance(&self) -> Result<u64, CreditError> {
+        let (tx, rx) = oneshot::channel();
+        self.sender
+            .send(Job::Balance(tx))
+            .await
+            .map_err(|_| Error(ErrorCode::Busy))?;
+        rx.await.map_err(|_| Error(ErrorCode::Busy))?
+    }
+    pub async fn consume(
+        &self,
+        n: u64,
+        key: Option<String>,
+        reason: Option<String>,
+    ) -> Result<CreditConsumption, CreditError> {
+        let (tx, rx) = oneshot::channel();
+        self.sender
+            .send(Job::Consume(n, key, reason, tx))
+            .await
+            .map_err(|_| Error(ErrorCode::Busy))?;
+        rx.await.map_err(|_| Error(ErrorCode::Busy))?
     }
 }

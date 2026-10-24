@@ -48,6 +48,7 @@ struct Mode {
     failed_release: bool,
     requests: Vec<&'static str>,
     installation: String,
+    fingerprint: Value,
 }
 struct Mock {
     mode: Mutex<Mode>,
@@ -90,6 +91,8 @@ impl Transport for Mock {
             );
             let body: Value = serde_json::from_slice(r.body.as_ref().unwrap()).unwrap();
             m.installation = body["device_id"].as_str().unwrap().into();
+            m.fingerprint = body["fingerprint"].clone();
+            m.fingerprint["policy"] = json!({"mode":"fuzzy","min_matches":2});
             if body["email"] != "customer@example.test" {
                 return Ok(HttpResponse {
                     status: 422,
@@ -105,7 +108,14 @@ impl Transport for Mock {
         }
         let now = self.now.load(Ordering::SeqCst);
         let mut payload = json!({"product_id":APP,"environment":"sandbox","license_id":"lic_synthetic","status":"active","server_time":iso(now),"next_validation_at":iso(now+3600),"offline_grace_until":iso(now+7*86400),"expires_at":if m.lifetime{Value::Null}else{json!(iso(m.expires.unwrap_or(now+30*86400)))},"device":{"installation_hash":hash(m.installation.as_bytes())},"features":{"pdf_export":true,"seat_count":3,"negative":-2,"fraction":2.5,"word":"true","off":false,"nested":{"level":"pro"}}});
+        payload["device"]["fingerprint"] = m.fingerprint.clone();
+        payload["floating"] = Value::Null;
+        payload["metered"] = json!(false);
+        payload["credit_balance"] = json!(0);
+        payload["total_allocated"] = json!(0);
+        payload["credit_transaction"] = Value::Null;
         if m.wrong_product {
+            // The current wire contract always carries hardware, seats and credit policy.
             payload["product_id"] = json!("app_other");
         }
         if m.wrong_device {

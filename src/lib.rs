@@ -20,11 +20,16 @@
 mod asynchronous;
 mod client;
 mod error;
+mod fingerprint;
+mod floating;
 mod json;
+mod policy;
 mod result;
 mod storage;
 mod transport;
 mod verification;
+pub use fingerprint::HardwareFingerprint;
+pub use policy::{CreditConsumption, CreditError};
 
 #[cfg(feature = "async")]
 pub use asynchronous::AsyncLicenseClient;

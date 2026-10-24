@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Phase B/C/D parity
+
+- Required native hardware fingerprint and signed device binding; no browser fallback.
+- Automatic floating checkout/heartbeat, explicit checkin/close, signed lease gating
+  and ALL_SEATS_IN_USE; synchronous and async clients.
+- Online-only consume/get_balance, authenticated idempotent receipts and typed
+  insufficient-credit refusal. No Ed25519, dependency or registry changes.
+
 ## 0.1.1 — 2026-10-24
 
 Documentation-only release: prominent documentation, GitHub and versioned ZIP

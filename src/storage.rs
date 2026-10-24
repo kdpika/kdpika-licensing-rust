@@ -20,10 +20,14 @@ pub(crate) struct State {
     pub envelope: Option<String>,
     pub verification_key: Option<VerificationKey>,
     pub checkpoint: Option<String>,
+    pub session_token: Option<String>,
 }
 impl Drop for State {
     fn drop(&mut self) {
         if let Some(t) = &mut self.token {
+            t.zeroize();
+        }
+        if let Some(t) = &mut self.session_token {
             t.zeroize();
         }
     }
