@@ -1,4 +1,18 @@
+# Current release: 0.2.0
+
+- Required signed hardware binding, floating checkout/heartbeat/checkin and online idempotent usage credits.
+- Updated installation, source links and cross-language capability documentation.
+- Customer portal remains hosted; browser hardware fallback is unsupported.
+
 # Changelog
+
+## 0.2.0 — 2026-10-26
+
+- Require product-salted hardware hashes and verify signed device/installation binding.
+- Add floating checkout, heartbeat and checkin with signed lease expiry and seat exhaustion.
+- Add online-only credit balance/consume, idempotent receipts and insufficient-credit errors.
+- Breaking pre-launch server contract; older published clients are not compatible.
+- Registry availability is recorded separately; a changelog is not proof of publication. Ed25519 is unchanged.
 
 ## Unreleased — Phase B/C/D parity
 

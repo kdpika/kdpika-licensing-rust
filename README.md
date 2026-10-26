@@ -1,6 +1,29 @@
 # KDPika Licensing Rust SDK
 
-## Unreleased source contract — hardware, seats and credits
+Official SDK **0.2.0** for the current KDPika API contract.
+
+[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [Download SDK ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.2.0.zip) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust)
+
+## Supported licensing capabilities
+
+| Capability | Behavior |
+|---|---|
+| Signed checks and offline access | Verify Ed25519 results; access never extends beyond signed expiry/offline policy. |
+| Device matching | Required product-salted hardware hashes and X-Installation-ID; verify the signed device binding. Raw serials are not sent. |
+| Floating licenses | Checkout, heartbeat and checkin with signed lease deadlines; handle ALL_SEATS_IN_USE. |
+| Usage credits | Online-only consume with a persisted idempotency key; query balance and handle INSUFFICIENT_CREDITS. |
+| Customer portal | Hosted self-service portal managed by the server, not an SDK payment or account feature. |
+
+Advanced matching, floating seats, credits and portal availability depend on your workspace plan. Browser/WASM hardware fingerprint fallback is unsupported. Test on your target OS and in Sandbox before distributing your app.
+
+## Install
+
+```sh
+cargo add kdpika-licensing@0.2.0
+```
+
+
+## Hardware matching, shared seats and usage credits
 
 Requires the matching Phase B–D server. Native Windows/macOS/Linux collect
 product-salted component hashes (never raw serials); activation and validation
@@ -26,16 +49,16 @@ Persist/reuse the same job key after an uncertain outcome: no automatic consume
 retry. Deduplicate the actual job separately. Normal feature checks do not charge
 credits; metered cache/offline checks deny `METERED_ONLINE_REQUIRED`. Async handles
 expose the same operations. Cancelling an await does not undo an in-flight charge.
-Source only: no crate version bump, registry publication or server change.
+Source candidate 0.2.0; no registry publication or server-contract change in this preparation.
 
 Official Rust client for license activation, signed validation, controlled offline
-access, feature checks and deactivation. **Rust 1.90+**, SDK **0.1.1**, MIT licensed.
+access, feature checks and deactivation. **Rust 1.90+**, SDK **0.2.0**, MIT licensed.
 
-[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.1/kdpika-rust-sdk-0.1.1.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
+[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.2.0/kdpika-rust-sdk-0.2.0.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
 
 ## Install from the source ZIP
 
-Download [kdpika-rust-sdk-0.1.1.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.1.zip)
+Download [kdpika-rust-sdk-0.2.0.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.2.0.zip)
 or the identical versioned asset from GitHub Releases. Verify its SHA-256 against
 the [download table](https://licensing.kdpika.com/docs/v1/sdks/overview#download-and-verify),
 then extract the `kdpika-rust-sdk` directory beside your application.
@@ -63,21 +86,21 @@ proprietary SaaS backend. Edition 2021; Rust 1.90 or later is required.
 ## Install from crates.io
 
 ```sh
-cargo add kdpika-licensing@0.1.1
+cargo add kdpika-licensing@0.2.0
 ```
 
 Or add it to Cargo.toml:
 
 ```toml
 [dependencies]
-kdpika-licensing = "0.1.1"
+kdpika-licensing = "0.2.0"
 ```
 
 Import it as `kdpika_licensing`. Commit your application's Cargo.lock to retain
 the resolved release/dependency versions. To enable the optional async worker:
 
 ```sh
-cargo add kdpika-licensing@0.1.1 --features async
+cargo add kdpika-licensing@0.2.0 --features async
 ```
 
 ## Install from GitHub
@@ -325,9 +348,9 @@ Support: [hi@kdpika.com](mailto:hi@kdpika.com) ·
 
 | Language | GitHub repository | ZIP from documentation | ZIP from GitHub Releases |
 | --- | --- | --- | --- |
-| Python | [kdpika-licensing-python](https://github.com/kdpika/kdpika-licensing-python) | [Python 1.1.6 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-python-sdk-1.1.6.zip) | [Python 1.1.6 ZIP](https://github.com/kdpika/kdpika-licensing-python/releases/download/v1.1.6/kdpika-python-sdk-1.1.6.zip) |
-| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.1.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.1.1.zip) | [Rust 0.1.1 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.1.1/kdpika-rust-sdk-0.1.1.zip) |
-| PHP | [kdpika-licensing-php](https://github.com/kdpika/kdpika-licensing-php) | [PHP 1.0.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-php-sdk-1.0.1.zip) | [PHP 1.0.1 ZIP](https://github.com/kdpika/kdpika-licensing-php/releases/download/v1.0.1/kdpika-php-sdk-1.0.1.zip) |
+| Python | [kdpika-licensing-python](https://github.com/kdpika/kdpika-licensing-python) | [Python 2.0.0 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-python-sdk-2.0.0.zip) | [Python 2.0.0 ZIP](https://github.com/kdpika/kdpika-licensing-python/releases/download/v1.1.6/kdpika-python-sdk-2.0.0.zip) |
+| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.2.0 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.2.0.zip) | [Rust 0.2.0 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.2.0/kdpika-rust-sdk-0.2.0.zip) |
+| PHP | [kdpika-licensing-php](https://github.com/kdpika/kdpika-licensing-php) | [PHP 2.0.0 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-php-sdk-2.0.0.zip) | [PHP 2.0.0 ZIP](https://github.com/kdpika/kdpika-licensing-php/releases/download/v1.0.1/kdpika-php-sdk-2.0.0.zip) |
 
 Each versioned GitHub ZIP asset is byte-identical to the matching documentation
 download. GitHub's automatic “Source code (zip)” is a repository snapshot with a

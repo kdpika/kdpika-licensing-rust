@@ -2,9 +2,6 @@ name: Rust SDK checks
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
-concurrency:
-  group: rust-sdk-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   tests:
     strategy:
@@ -14,9 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
+      - uses: actions/checkout@v4
       - run: rustup toolchain install 1.90.0 --profile minimal --component clippy --component rustfmt
       - run: cargo +1.90.0 fmt --check
       - run: cargo +1.90.0 clippy --all-features --all-targets --locked -- -D warnings
