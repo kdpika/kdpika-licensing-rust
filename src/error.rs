@@ -4,6 +4,10 @@ use std::{error::Error as StdError, fmt};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ErrorCode {
+    ApplicationNotAllowed,
+    ApplicationTypeRequired,
+    ApplicationTypeMismatch,
+    InvalidApplicationType,
     HardwareUnavailable,
     InvalidFingerprint,
     FingerprintMismatch,
@@ -56,6 +60,10 @@ impl ErrorCode {
     /// Stable identifiers, matching API v1 where the code originates on the server.
     pub fn as_str(self) -> &'static str {
         match self {
+            Self::ApplicationNotAllowed=>"APPLICATION_NOT_ALLOWED",
+            Self::ApplicationTypeRequired=>"APPLICATION_TYPE_REQUIRED",
+            Self::ApplicationTypeMismatch=>"APPLICATION_TYPE_MISMATCH",
+            Self::InvalidApplicationType=>"INVALID_APPLICATION_TYPE",
             Self::HardwareUnavailable => "HARDWARE_UNAVAILABLE",
             Self::InvalidFingerprint => "INVALID_FINGERPRINT",
             Self::FingerprintMismatch => "FINGERPRINT_MISMATCH",
@@ -107,6 +115,10 @@ impl ErrorCode {
     }
     pub(crate) fn from_server(code: &str) -> Self {
         match code {
+            "APPLICATION_NOT_ALLOWED"=>Self::ApplicationNotAllowed,
+            "APPLICATION_TYPE_REQUIRED"=>Self::ApplicationTypeRequired,
+            "APPLICATION_TYPE_MISMATCH"=>Self::ApplicationTypeMismatch,
+            "INVALID_APPLICATION_TYPE"=>Self::InvalidApplicationType,
             "HARDWARE_UNAVAILABLE" => Self::HardwareUnavailable,
             "INVALID_FINGERPRINT" => Self::InvalidFingerprint,
             "FINGERPRINT_MISMATCH" => Self::FingerprintMismatch,
@@ -144,6 +156,7 @@ impl ErrorCode {
     /// Plain, bounded, SDK-owned text suitable for displaying to a customer.
     pub fn message(self) -> &'static str {
         match self {
+            Self::ApplicationNotAllowed | Self::ApplicationTypeRequired | Self::ApplicationTypeMismatch | Self::InvalidApplicationType => "This license does not include this app type, or its application configuration needs updating.",
             Self::Configuration => "Check the application's licensing configuration.",
             Self::Storage | Self::Busy => {
                 "Private license storage is unavailable or in use. Please try again."

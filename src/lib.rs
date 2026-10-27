@@ -41,3 +41,6 @@ pub use verification::VerificationKey;
 pub(crate) type Clock = std::sync::Arc<dyn Fn() -> chrono::DateTime<chrono::Utc> + Send + Sync>;
 /// SDK source version. Registry availability is a separate release step.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Signed application-family entitlement checks.
+pub mod applications;

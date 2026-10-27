@@ -1,0 +1,3 @@
+use kdpika_licensing::{applications::allowed,LicenseClient};use serde_json::json;
+#[test]
+fn scopes_and_cache_binding(){for scope in ["both","desktop","web"]{for kind in ["desktop","web"]{assert_eq!(allowed(&json!({"application_access":scope,"application_type":kind}),kind),scope=="both"||scope==kind);assert!(!allowed(&json!({"application_access":scope,"application_type":if kind=="web"{"desktop"}else{"web"}}),kind));}}for scope in [json!(null),json!(true),json!({}),json!("other")]{assert!(!allowed(&json!({"application_access":scope}),"desktop"));}assert!(LicenseClient::builder("app_fixture").application_type("invalid").build().is_err());}

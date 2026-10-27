@@ -39,6 +39,7 @@ pub struct ClientBuilder {
     base_url: String,
     application_name: String,
     application_version: String,
+    application_type: String,
     storage_dir: Option<PathBuf>,
     timeout: Duration,
     pin: Option<VerificationKey>,
@@ -68,6 +69,10 @@ impl ClientBuilder {
     pub fn application_name(mut self, value: impl Into<String>) -> Self {
         self.application_name = value.into();
         self
+    }
+    /// Set desktop or web from trusted host application configuration.
+    pub fn application_type(mut self, value: impl Into<String>) -> Self {
+        self.application_type=value.into(); self
     }
     pub fn application_version(mut self, value: impl Into<String>) -> Self {
         self.application_version = value.into();
@@ -106,7 +111,7 @@ impl ClientBuilder {
         self
     }
     pub fn build(self) -> Result<LicenseClient> {
-        if !safe_text(&self.product, 160)
+        if !matches!(self.application_type.as_str(),"desktop"|"web") || !safe_text(&self.product, 160)
             || !self.product.starts_with("app_")
             || !self
                 .product
@@ -135,6 +140,7 @@ impl ClientBuilder {
             self.product,
             self.environment.as_str()
         );
+        let namespace=format!("{}|{}",namespace,self.application_type);
         let store = Store::new(&root, &namespace)?;
         let transport = match self.transport {
             Some(t) => t,
@@ -146,6 +152,7 @@ impl ClientBuilder {
                 environment: self.environment,
                 application_name: self.application_name,
                 application_version: self.application_version,
+                application_type: self.application_type,
                 store,
                 pin: self.pin,
                 transport,
@@ -175,6 +182,7 @@ pub struct ClientCore {
     environment: Environment,
     application_name: String,
     application_version: String,
+    application_type: String,
     store: Store,
     pin: Option<VerificationKey>,
     transport: Arc<dyn Transport>,
@@ -220,6 +228,7 @@ impl LicenseClient {
             base_url: "https://licensing.kdpika.com".into(),
             application_name: "Licensed Rust Application".into(),
             application_version: String::new(),
+            application_type: "desktop".into(),
             storage_dir: None,
             timeout: Duration::from_secs(15),
             pin: None,
@@ -852,6 +861,7 @@ impl ClientCore {
         {
             return self.denied(ErrorCode::SignatureInvalid, source, reply);
         }
+        if !crate::applications::allowed(&payload,&self.application_type){return self.denied(ErrorCode::ApplicationNotAllowed,source,reply);}
         let fingerprint = match (self.fingerprint)(&self.product) {
             Ok(v) => v,
             Err(e) => return self.denied(e.0, source, reply),
@@ -957,6 +967,7 @@ impl ClientCore {
         product_headers: bool,
     ) -> Result<Reply> {
         let mut headers = BTreeMap::new();
+        headers.insert("X-Application-Type".into(),self.application_type.clone());
         if product_headers {
             headers.insert("X-App-ID".into(), self.product.clone());
             headers.insert("X-Environment".into(), self.environment.as_str().into());

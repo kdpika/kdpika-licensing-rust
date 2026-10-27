@@ -1,3 +1,8 @@
+## 0.3.0 — application access source update (not registry-published)
+
+- Add desktop/web application context, context-isolated installation state, request header and signed network/cache enforcement.
+- Default remains web for PHP and desktop for native/Node SDKs. No changes to Ed25519 signing, credit atomicity or seat limits.
+
 # Current release: 0.2.1
 
 - Required signed hardware binding, floating checkout/heartbeat/checkin and online idempotent usage credits.

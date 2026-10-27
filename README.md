@@ -1,8 +1,31 @@
 # KDPika Licensing Rust SDK
 
-Official SDK **0.2.1** for the current KDPika API contract.
+## Desktop / Web plan controls — 0.3.0
 
-[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [Download SDK ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.2.1.zip) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust)
+This source adds Business-only per-software-plan app access: `desktop`, `web`, or `both`. Starter and Pro automatically allow both under the same App ID and cannot create app-specific restrictions. It applies equally to subscriptions, one-time purchases and lifetime access. Devices/seats/credits belong to the same license; choosing both does not double its limits.
+
+Configure the host application, not a customer-editable field:
+
+```
+LicenseClient::builder("YOUR_APP_ID").application_type("web").storage_dir("/private/web-license").build()?
+```
+
+Default: desktop. Configure the other app with the same App ID and key, its own context and private state folder. SDK storage namespaces include the context. All activation/validation/seat/credit requests send `X-Application-Type`, and the SDK checks signed `application_access` plus `application_type` on network and cached results. A scope-restricted license cannot activate without declaring a context. Errors: APPLICATION_NOT_ALLOWED, APPLICATION_TYPE_REQUIRED, APPLICATION_TYPE_MISMATCH, INVALID_APPLICATION_TYPE. Releasing a machine/seat remains possible after a restriction change.
+
+Context is a declaration by trusted application code, not browser/hardware attestation. A user who controls executable code can modify it; valuable online operations need server-side authorization too. Offline clients learn changed policies only on reconnect and must obey the old signed deadline until then. Browser/WASM hardware fallback remains unsupported.
+
+[Download the source ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.3.0.zip) · [Desktop / Web setup and migration](https://licensing.kdpika.com/docs/v1/licensing/application-access)
+
+## Install this release
+
+```sh
+cargo add kdpika-licensing@0.3.0
+```
+
+
+Official SDK **0.3.0** for signed licensing, hardware binding, floating seats, metered credits and Desktop / Web access controls.
+
+[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [Download SDK ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.3.0.zip) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust)
 
 ## Supported licensing capabilities
 
@@ -19,7 +42,7 @@ Advanced matching, floating seats, credits and portal availability depend on you
 ## Install
 
 ```sh
-cargo add kdpika-licensing@0.2.1
+cargo add kdpika-licensing@0.3.0
 ```
 
 
@@ -52,13 +75,13 @@ expose the same operations. Cancelling an await does not undo an in-flight charg
 Official SDK source and registry release. Use the current package and the matching source ZIP.
 
 Official Rust client for license activation, signed validation, controlled offline
-access, feature checks and deactivation. **Rust 1.90+**, SDK **0.2.1**, MIT licensed.
+access, feature checks and deactivation. **Rust 1.90+**, SDK **0.3.0**, MIT licensed.
 
-[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.2.1/kdpika-rust-sdk-0.2.1.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
+[Documentation](https://licensing.kdpika.com/docs/v1/sdks/rust) · [GitHub source](https://github.com/kdpika/kdpika-licensing-rust) · [Download SDK ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.3.0/kdpika-rust-sdk-0.3.0.zip) · [crates.io package](https://crates.io/crates/kdpika-licensing)
 
 ## Install from the source ZIP
 
-Download [kdpika-rust-sdk-0.2.1.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.2.1.zip)
+Download [kdpika-rust-sdk-0.3.0.zip from KDPika](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.3.0.zip)
 or the identical versioned asset from GitHub Releases. Verify its SHA-256 against
 the [download table](https://licensing.kdpika.com/docs/v1/sdks/overview#download-and-verify),
 then extract the `kdpika-rust-sdk` directory beside your application.
@@ -86,21 +109,21 @@ proprietary SaaS backend. Edition 2021; Rust 1.90 or later is required.
 ## Install from crates.io
 
 ```sh
-cargo add kdpika-licensing@0.2.1
+cargo add kdpika-licensing@0.3.0
 ```
 
 Or add it to Cargo.toml:
 
 ```toml
 [dependencies]
-kdpika-licensing = "0.2.1"
+kdpika-licensing = "0.3.0"
 ```
 
 Import it as `kdpika_licensing`. Commit your application's Cargo.lock to retain
 the resolved release/dependency versions. To enable the optional async worker:
 
 ```sh
-cargo add kdpika-licensing@0.2.1 --features async
+cargo add kdpika-licensing@0.3.0 --features async
 ```
 
 ## Install from GitHub
@@ -349,7 +372,7 @@ Support: [hi@kdpika.com](mailto:hi@kdpika.com) ·
 | Language | GitHub repository | ZIP from documentation | ZIP from GitHub Releases |
 | --- | --- | --- | --- |
 | Python | [kdpika-licensing-python](https://github.com/kdpika/kdpika-licensing-python) | [Python 2.0.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-python-sdk-2.0.1.zip) | [Python 2.0.1 ZIP](https://github.com/kdpika/kdpika-licensing-python/releases/download/v1.1.6/kdpika-python-sdk-2.0.1.zip) |
-| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.2.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.2.1.zip) | [Rust 0.2.1 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.2.1/kdpika-rust-sdk-0.2.1.zip) |
+| Rust | [kdpika-licensing-rust](https://github.com/kdpika/kdpika-licensing-rust) | [Rust 0.3.0 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-rust-sdk-0.3.0.zip) | [Rust 0.3.0 ZIP](https://github.com/kdpika/kdpika-licensing-rust/releases/download/v0.3.0/kdpika-rust-sdk-0.3.0.zip) |
 | PHP | [kdpika-licensing-php](https://github.com/kdpika/kdpika-licensing-php) | [PHP 2.0.1 ZIP](https://licensing.kdpika.com/docs/downloads/kdpika-php-sdk-2.0.1.zip) | [PHP 2.0.1 ZIP](https://github.com/kdpika/kdpika-licensing-php/releases/download/v1.0.1/kdpika-php-sdk-2.0.1.zip) |
 
 Each versioned GitHub ZIP asset is byte-identical to the matching documentation
