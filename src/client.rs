@@ -400,6 +400,34 @@ impl ClientCore {
         }
         Ok(r)
     }
+    pub fn credit_packs(&self) -> Result<Value> { self.credit_request("packs", json!({})) }
+    pub fn credit_history(&self) -> Result<Value> { self.credit_request("history", json!({})) }
+    pub fn create_credit_checkout(&self, pack_id: &str) -> Result<Value> { self.credit_request("checkout", json!({"pack_id":pack_id})) }
+    pub fn redeem_credits(&self, code: &str, key: &str) -> Result<Value> {
+        if key.len()<8 || key.len()>190 || !key.bytes().all(|c|c.is_ascii_alphanumeric()||b"_.:-".contains(&c)) {return Err(Error(ErrorCode::InvalidRequest));}
+        self.credit_request("redeem",json!({"code":code,"idempotency_key":key}))
+    }
+    fn credit_request(&self, operation: &str, mut fields: Value) -> Result<Value> {
+        let _guard=self.store.lock()?;let mut state=self.store.load()?;
+        let token=state.token.clone().ok_or(Error(ErrorCode::NotActivated))?;
+        self.set_session(state.session_token.clone());
+        let fp=(self.fingerprint)(&self.product)?;
+        fields["fingerprint"]=fp.value();fields["session_token"]=json!(state.session_token);
+        let path=match operation {"packs"=>"/api/v1/credits/packs","history"=>"/api/v1/credits/history","checkout"=>"/api/v1/credits/checkout","redeem"=>"/api/v1/credits/redeem",_=>return Err(Error(ErrorCode::InvalidRequest))};
+        let reply=self.request("POST",path,Some(fields.clone()),Some(&token),false)?;
+        if !reply.ok(){return Err(Error(reply.code()));}
+        let env=envelope(&reply)?;let r=self.authenticate(&mut state,&env,Source::Online,Some(&reply));
+        if !r.valid() || !r.signature_valid(){return Err(Error(r.error_code().unwrap_or(ErrorCode::SignatureInvalid)));}
+        let mut data=reply.value.clone();data.as_object_mut().ok_or(Error(ErrorCode::InvalidResponse))?.remove("license");
+        data["balance"]=r.payload["credit_balance"].clone();
+        if operation=="redeem" {
+            let receipt=&r.payload["credit_transaction"];let key=fields["idempotency_key"].as_str().ok_or(Error(ErrorCode::InvalidRequest))?;
+            let expected=verification::hash(format!("code:{}",verification::hash(key.as_bytes())).as_bytes());
+            if receipt["type"]!="grant"||receipt["idempotency_hash"]!=expected||receipt["id"]!=data["transaction_id"]{return Err(Error(ErrorCode::SignatureInvalid));}
+            data["added"]=receipt["amount"].clone();data["replayed"]=receipt["replayed"].clone();
+        }
+        state.envelope=Some(env);self.checkpoint(&mut state,&r)?;Ok(data)
+    }
     pub fn get_balance(&self) -> std::result::Result<u64, CreditError> {
         let _guard = self.store.lock()?;
         let mut state = self.store.load()?;
@@ -417,12 +445,9 @@ impl ClientCore {
             .ok_or_else(|| Error(ErrorCode::InvalidResponse).into())
     }
     /// No retry. Reuse a persisted request key after an uncertain transport outcome.
-    pub fn consume(
-        &self,
-        amount: u64,
-        key: Option<&str>,
-        reason: Option<&str>,
-    ) -> std::result::Result<CreditConsumption, CreditError> {
+    pub fn consume(&self, amount:u64, key:Option<&str>, reason:Option<&str>) -> std::result::Result<CreditConsumption,CreditError> { self.consume_inner(amount,key,reason,None) }
+    pub fn consume_action(&self, action:&str, key:&str, expected_units:u64) -> std::result::Result<CreditConsumption,CreditError> { self.consume_inner(expected_units,Some(key),None,Some(action)) }
+    fn consume_inner(&self, mut amount:u64, key:Option<&str>, reason:Option<&str>, action:Option<&str>) -> std::result::Result<CreditConsumption,CreditError> {
         if amount == 0 || amount > crate::policy::MAX {
             return Err(Error(ErrorCode::InvalidCreditAmount).into());
         }
@@ -442,7 +467,7 @@ impl ClientCore {
         let token = state.token.clone().ok_or(Error(ErrorCode::NotActivated))?;
         self.set_session(state.session_token.clone());
         let fp = (self.fingerprint)(&self.product)?;
-        let reply=self.request("POST","/api/v1/licenses/consume",Some(json!({"amount":amount,"idempotency_key":key,"reason":reason,"fingerprint":fp.value(),"session_token":state.session_token})),Some(&token),false)?;
+        let reply=self.request("POST","/api/v1/licenses/consume",Some(json!({"amount":amount,"action":action,"idempotency_key":key,"reason":reason,"fingerprint":fp.value(),"session_token":state.session_token})),Some(&token),false)?;
         if !reply.ok() && reply.code() != ErrorCode::InsufficientCredits {
             state.envelope = None;
             self.store.save(&state)?;
@@ -462,7 +487,7 @@ impl ClientCore {
             let balance = r.payload["credit_balance"]
                 .as_u64()
                 .ok_or(Error(ErrorCode::SignatureInvalid))?;
-            if reply.status != 402 || balance >= amount || reply.value["balance"] != balance {
+            if reply.status != 402 || (action.is_none() && balance >= amount) || reply.value["balance"] != balance {
                 return Err(Error(ErrorCode::SignatureInvalid).into());
             }
             state.envelope = Some(env);
@@ -470,6 +495,7 @@ impl ClientCore {
             return Err(CreditError::InsufficientCredits { balance });
         }
         let receipt = &r.payload["credit_transaction"];
+        if action.is_some() {let delta=receipt["amount"].as_i64().filter(|n|*n<0&&*n>=-(crate::policy::MAX as i64)).ok_or(Error(ErrorCode::SignatureInvalid))?;amount=(-delta)as u64;}
         let expected = key.map(|k| verification::hash(k.as_bytes()));
         let id = receipt["id"]
             .as_str()
@@ -919,9 +945,6 @@ impl ClientCore {
             if payload["metered"] == true {
                 if source != Source::Online {
                     return Some(ErrorCode::MeteredOnlineRequired);
-                }
-                if payload["credit_balance"] == 0 {
-                    return Some(ErrorCode::InsufficientCredits);
                 }
             }
             None

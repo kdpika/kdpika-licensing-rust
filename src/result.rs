@@ -136,7 +136,7 @@ impl LicenseResult {
                 now,
             )
             || (self.payload["metered"] == true
-                && (self.source != Source::Online || self.payload["credit_balance"] == 0))
+                && self.source != Source::Online)
         {
             return false;
         }

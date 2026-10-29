@@ -13,7 +13,12 @@ enum Operation {
     Checkin,
     Close,
 }
+enum CreditOperation {
+    Packs, History, Checkout(String), Redeem(Zeroizing<String>,String),
+}
 enum Job {
+    Commerce(CreditOperation,oneshot::Sender<Result<serde_json::Value,Error>>),
+    Action(String,String,u64,oneshot::Sender<Result<CreditConsumption,CreditError>>),
     License(Operation, oneshot::Sender<Result<LicenseResult, Error>>),
     Balance(oneshot::Sender<Result<u64, CreditError>>),
     Consume(
@@ -48,6 +53,11 @@ impl AsyncLicenseClient {
                 }
                 while let Some(job) = rx.blocking_recv() {
                     let (operation, reply) = match job {
+                        Job::Commerce(operation,reply)=>{
+                            let result=match operation {CreditOperation::Packs=>client.credit_packs(),CreditOperation::History=>client.credit_history(),CreditOperation::Checkout(id)=>client.create_credit_checkout(&id),CreditOperation::Redeem(code,key)=>client.redeem_credits(&code,&key)};
+                            let _=reply.send(result);continue;
+                        }
+                        Job::Action(action,key,units,reply)=>{let _=reply.send(client.consume_action(&action,&key,units));continue;}
                         Job::Balance(reply) => {
                             let _ = reply.send(client.get_balance());
                             continue;
@@ -125,6 +135,12 @@ impl AsyncLicenseClient {
     pub async fn close(&self) -> Result<LicenseResult, Error> {
         self.run(Operation::Close).await
     }
+    pub async fn credit_packs(&self)->Result<serde_json::Value,Error>{self.commerce(CreditOperation::Packs).await}
+    pub async fn credit_history(&self)->Result<serde_json::Value,Error>{self.commerce(CreditOperation::History).await}
+    pub async fn create_credit_checkout(&self,pack_id:String)->Result<serde_json::Value,Error>{self.commerce(CreditOperation::Checkout(pack_id)).await}
+    pub async fn redeem_credits(&self,code:String,key:String)->Result<serde_json::Value,Error>{self.commerce(CreditOperation::Redeem(Zeroizing::new(code),key)).await}
+    async fn commerce(&self,operation:CreditOperation)->Result<serde_json::Value,Error>{let(tx,rx)=oneshot::channel();self.sender.send(Job::Commerce(operation,tx)).await.map_err(|_|Error(ErrorCode::Busy))?;rx.await.map_err(|_|Error(ErrorCode::Busy))?}
+    pub async fn consume_action(&self,action:String,key:String,expected_units:u64)->Result<CreditConsumption,CreditError>{let(tx,rx)=oneshot::channel();self.sender.send(Job::Action(action,key,expected_units,tx)).await.map_err(|_|Error(ErrorCode::Busy))?;rx.await.map_err(|_|Error(ErrorCode::Busy))?}
     pub async fn get_balance(&self) -> Result<u64, CreditError> {
         let (tx, rx) = oneshot::channel();
         self.sender

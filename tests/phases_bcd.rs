@@ -172,9 +172,13 @@ impl Transport for Mock {
                 }
             }
         }
-        if r.path.ends_with("/validate") && m.metered && m.balance == 0 {
-            status = 402;
-            code = Some("INSUFFICIENT_CREDITS");
+
+        if r.path.ends_with("/credits/redeem") {
+            if body["code"]!="KDP100CR" {return reply(json!({"success":false,"error":{"code":"CREDIT_CODE_UNAVAILABLE"}}),422);}
+            let key=body["idempotency_key"].as_str().unwrap().to_string();
+            if let Some(old)=m.ledger.get(&key).cloned(){receipt=old;receipt["replayed"]=json!(true);}
+            else {m.balance+=100;receipt=json!({"id":"ctx_code_fixture","type":"grant","amount":100,"balance_after":m.balance,"total_allocated_after":105,"idempotency_hash":hash(&format!("code:{}",hash(&key))),"replayed":false});m.ledger.insert(key,receipt.clone());}
+            if m.lost {m.lost=false;return Err(NetworkError);}
         }
         let now = self.now.load(Ordering::SeqCst);
         let seat = format!("flt_{}", "A".repeat(43));
@@ -192,6 +196,10 @@ impl Transport for Mock {
         let encoded = serde_json::to_string(&payload).unwrap();
         let envelope = json!({"payload":payload,"payload_json":encoded,"signature":B64.encode(signer.sign(encoded.as_bytes()).to_bytes()),"algorithm":"Ed25519","key_id":format!("ed25519_{}",&format!("{:x}",Sha256::digest(pubkey))[..16])});
         let mut data = json!({"success":status==200,"activation_token":"act_SYNTHETIC_FIXTURE","session_token":seat,"license":envelope});
+        if r.path.ends_with("/credits/redeem"){data["transaction_id"]=receipt["id"].clone();data["added"]=json!(999);data["balance"]=json!(999);data["replayed"]=receipt["replayed"].clone();}
+        if r.path.ends_with("/credits/packs"){data["packs"]=json!([{"id":"cpk_fixture","units":100}]);}
+        if r.path.ends_with("/credits/checkout"){data["checkout_url"]=json!("https://store.example.test/?kdpika_credit_checkout=opaque");}
+        if r.path.ends_with("/credits/history"){data["transactions"]=json!([]);}
         if let Some(code) = code {
             data["error"] = json!({"code":code});
             data["balance"] = json!(m.balance);
@@ -340,7 +348,7 @@ fn zero_activation_survives_topup_online_only_and_no_automatic_retry() {
     f.transport.mode.lock().unwrap().balance = 0;
     assert_eq!(
         f.client.activate("FIXTURE", None).error_code(),
-        Some(ErrorCode::InsufficientCredits)
+        None
     );
     assert!(f.client.activated().unwrap());
     f.transport.mode.lock().unwrap().balance = 5;
@@ -408,5 +416,31 @@ async fn async_credit_and_seat_wrappers_use_the_same_contract() {
         4
     );
     assert_eq!(client.get_balance().await.unwrap(), 4);
+    assert!(client.close().await.unwrap().deactivated());
+}
+
+#[test]
+fn credit_commerce_signed_grants_replay_checkout_and_errors() {
+    let f=fixture(false,true);assert!(f.client.activate("FIXTURE",None).valid());
+    let granted=f.client.redeem_credits("KDP100CR","credit-code-first").unwrap();assert_eq!(granted["added"],100);assert_eq!(granted["balance"],105);
+    assert_eq!(f.client.redeem_credits("KDP100CR","credit-code-first").unwrap()["replayed"],true);
+    assert_eq!(f.client.redeem_credits("WRONGCODE","credit-code-bad").unwrap_err().code(),ErrorCode::CreditCodeUnavailable);
+    f.transport.mode.lock().unwrap().lost=true;assert_eq!(f.client.redeem_credits("KDP100CR","credit-code-lost").unwrap_err().code(),ErrorCode::Network);
+    assert_eq!(f.client.redeem_credits("KDP100CR","credit-code-lost").unwrap()["replayed"],true);
+    assert_eq!(f.client.credit_packs().unwrap()["packs"][0]["units"],100);
+    assert!(f.client.create_credit_checkout("cpk_fixture").unwrap()["checkout_url"].as_str().unwrap().starts_with("https://store.example.test/"));
+    assert_eq!(f.client.credit_history().unwrap()["transactions"],json!([]));
+}
+
+#[cfg(feature="async")]
+#[tokio::test]
+async fn credit_commerce_async_operations_share_the_serialized_worker(){
+    let f=fixture(false,true);
+    let builder=LicenseClient::builder(APP).storage_dir(f._directory.path()).transport(f.transport.clone()).clock(||DateTime::<Utc>::from_timestamp(NOW,0).unwrap()).fingerprint_provider(|_|Ok(hardware("nic-1","board-1")));
+    let client=kdpika_licensing::AsyncLicenseClient::build(builder).await.unwrap();assert!(client.activate("FIXTURE",None).await.unwrap().valid());
+    assert_eq!(client.redeem_credits("KDP100CR".into(),"async-redeem-first".into()).await.unwrap()["added"],100);
+    assert_eq!(client.credit_packs().await.unwrap()["packs"][0]["units"],100);
+    assert!(client.create_credit_checkout("cpk_fixture".into()).await.unwrap()["checkout_url"].is_string());
+    assert_eq!(client.credit_history().await.unwrap()["transactions"],json!([]));
     assert!(client.close().await.unwrap().deactivated());
 }
